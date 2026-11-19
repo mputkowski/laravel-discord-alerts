@@ -4,22 +4,19 @@ namespace mputkowski\DiscordAlerts\Support;
 
 class ChannelResolver
 {
-    private $default;
-    private $channels;
-
-    public function __construct($default, array $channels = [])
-    {
-        $this->default = $default;
-        $this->channels = $channels;
+    public function __construct(
+        private readonly string $default,
+        private readonly array $channels = [],
+    ) {
     }
 
     /**
      * Resolve an alias, a raw channel ID, or the default channel. Returns '' when unknown.
      */
-    public function resolve($channel = null): string
+    public function resolve(mixed $channel = null): string
     {
         if ($channel === null || $channel === '') {
-            return (string) $this->default;
+            return $this->default;
         }
 
         $channel = (string) $channel;

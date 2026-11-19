@@ -8,7 +8,7 @@ use mputkowski\DiscordAlerts\Tests\TestCase;
 
 class ContextTest extends TestCase
 {
-    public function test_http_context_strips_query_string()
+    public function test_http_context_strips_query_string(): void
     {
         $this->app->instance('request', Request::create('https://app.test/orders/5?token=abc', 'GET', [], [], [], ['REMOTE_ADDR' => '10.0.0.1']));
 
@@ -18,14 +18,14 @@ class ContextTest extends TestCase
         $this->assertContains('**IP:** 10.0.0.1', $lines);
     }
 
-    public function test_console_context_lists_command()
+    public function test_console_context_lists_command(): void
     {
         $lines = (new Context($this->app))->lines(true);
 
         $this->assertStringStartsWith('**Command:** `php ', $lines[0]);
     }
 
-    public function test_console_context_omits_options_and_non_artisan_arguments()
+    public function test_console_context_omits_options_and_non_artisan_arguments(): void
     {
         $original = $_SERVER['argv'] ?? null;
 

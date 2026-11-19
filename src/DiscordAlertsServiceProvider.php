@@ -14,14 +14,14 @@ use mputkowski\DiscordAlerts\Support\Dedupe;
 
 class DiscordAlertsServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/discord-alerts.php', 'discord-alerts');
 
         $this->app->singleton(Client::class, function ($app) {
             $config = $app['config']->get('discord-alerts');
 
-            return new Client(new GuzzleClient(), $config['bot_token'], $config['timeout']);
+            return new Client(new GuzzleClient(), (string) $config['bot_token'], (float) $config['timeout']);
         });
 
         $this->app->singleton(DiscordAlerts::class, function ($app) {
@@ -36,7 +36,7 @@ class DiscordAlertsServiceProvider extends ServiceProvider
         });
     }
 
-    public function boot()
+    public function boot(): void
     {
         $this->publishes([
             __DIR__ . '/../config/discord-alerts.php' => $this->app->configPath('discord-alerts.php'),
@@ -49,13 +49,13 @@ class DiscordAlertsServiceProvider extends ServiceProvider
         // Exceptions from queue jobs are reported after JobExceptionOccurred fires,
         // so remember the job to include it in the report. Only failing jobs pay
         // for resolving the manager.
-        $this->app['events']->listen(JobExceptionOccurred::class, function ($event) {
+        $this->app['events']->listen(JobExceptionOccurred::class, function (JobExceptionOccurred $event) {
             $this->app->make(DiscordAlerts::class)->setCurrentJob($event->job);
         });
 
         // A failing job that is never reported must not leak into later reports of a
         // long-lived worker, so drop it when the worker moves on.
-        $forgetJob = function () {
+        $forgetJob = function (): void {
             if ($this->app->resolved(DiscordAlerts::class)) {
                 $this->app->make(DiscordAlerts::class)->setCurrentJob(null);
             }

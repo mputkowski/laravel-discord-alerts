@@ -7,24 +7,23 @@ use Throwable;
 
 class Client
 {
-    const API_URL = 'https://discord.com/api/v10';
+    public const API_URL = 'https://discord.com/api/v10';
 
-    private $http;
-    private $token;
-    private $timeout;
-    private $lastError;
+    public const VERSION = '1.0';
 
-    public function __construct(ClientInterface $http, $token, $timeout = 3)
-    {
-        $this->http = $http;
-        $this->token = (string) $token;
-        $this->timeout = (float) $timeout;
+    private ?string $lastError = null;
+
+    public function __construct(
+        private readonly ClientInterface $http,
+        private readonly string $token,
+        private readonly float $timeout = 3.0,
+    ) {
     }
 
     /**
      * Why the last postMessage() failed, or null if it succeeded.
      */
-    public function lastError()
+    public function lastError(): ?string
     {
         return $this->lastError;
     }
@@ -32,7 +31,7 @@ class Client
     /**
      * Post a message to a channel. Never throws; returns whether Discord accepted it.
      */
-    public function postMessage($channelId, array $payload): bool
+    public function postMessage(string $channelId, array $payload): bool
     {
         $this->lastError = null;
 
@@ -40,7 +39,7 @@ class Client
             $response = $this->http->request('POST', self::API_URL . '/channels/' . rawurlencode($channelId) . '/messages', [
                 'headers' => [
                     'Authorization' => 'Bot ' . $this->token,
-                    'User-Agent' => 'DiscordBot (https://github.com/mputkowski/laravel-discord-alerts, 0.1)',
+                    'User-Agent' => 'DiscordBot (https://github.com/mputkowski/laravel-discord-alerts, ' . self::VERSION . ')',
                 ],
                 'json' => $payload,
                 'timeout' => $this->timeout,
@@ -64,10 +63,12 @@ class Client
         }
     }
 
-    private function describe($status, $body)
+    private function describe(int $status, string $body): string
     {
         $data = json_decode($body, true);
-        $detail = is_array($data) && isset($data['message']) ? ': ' . $data['message'] . (isset($data['code']) ? ' (code ' . $data['code'] . ')' : '') : '';
+        $detail = is_array($data) && isset($data['message'])
+            ? ': ' . $data['message'] . (isset($data['code']) ? ' (code ' . $data['code'] . ')' : '')
+            : '';
 
         $hints = [
             401 => 'the bot token is invalid, check DISCORD_ALERTS_BOT_TOKEN',

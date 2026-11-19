@@ -12,8 +12,10 @@ Send **exception reports** and **custom messages** from a Laravel application to
 
 | | Supported |
 |---|---|
-| PHP | 7.2 – 8.4 |
-| Laravel | 6 – 12 |
+| PHP | 8.2 – 8.5 |
+| Laravel | 11 – 13 |
+
+> **Upgrading from 0.x:** 1.0 requires PHP 8.2+ and Laravel 11+ (13 is supported). Stay on `^0.1` for older PHP or Laravel versions. The config file and environment variables are unchanged.
 
 ## Installation
 
@@ -25,7 +27,7 @@ This package is not published to Packagist. Add the repository to the consuming 
         { "type": "vcs", "url": "https://github.com/mputkowski/laravel-discord-alerts.git" }
     ],
     "require": {
-        "mputkowski/laravel-discord-alerts": "^0.1"
+        "mputkowski/laravel-discord-alerts": "^1.0"
     }
 }
 ```
@@ -79,20 +81,7 @@ If the token or the channel ID is empty, nothing is sent.
 
 ### Reporting exceptions
 
-**Laravel 6 – 10** (`app/Exceptions/Handler.php`; Laravel 6 and 7 type-hint `Exception` instead of `Throwable`):
-
-```php
-use mputkowski\DiscordAlerts\Facades\DiscordAlerts;
-
-public function report(Throwable $exception)
-{
-    DiscordAlerts::report($exception);
-
-    parent::report($exception);
-}
-```
-
-**Laravel 11+** (`bootstrap/app.php`):
+In `bootstrap/app.php`:
 
 ```php
 use mputkowski\DiscordAlerts\Facades\DiscordAlerts;
@@ -154,4 +143,4 @@ composer install
 vendor/bin/phpunit
 ```
 
-CI runs the suite against PHP 7.2 – 8.4 and Laravel 6 – 12.
+CI runs the suite against PHP 8.2 – 8.5 and Laravel 11 – 13.

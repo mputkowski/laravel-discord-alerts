@@ -11,7 +11,7 @@ class TestCommand extends Command
 
     protected $description = 'Send a test message to the default Discord channel';
 
-    public function handle(DiscordAlerts $alerts)
+    public function handle(DiscordAlerts $alerts): int
     {
         if ($alerts->send($this->argument('message'), ['title' => 'Discord alerts test'])) {
             $this->info('Message sent.');

@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 class MentionTest extends TestCase
 {
-    public function test_role_user_and_bare_id()
+    public function test_role_user_and_bare_id(): void
     {
         $this->assertSame('<@&123>', Mention::parse('role:123')['content']);
         $this->assertSame('<@&123>', Mention::parse('123')['content']);
@@ -17,21 +17,21 @@ class MentionTest extends TestCase
         $this->assertSame(['parse' => [], 'users' => ['456']], Mention::parse('user:456')['allowed_mentions']);
     }
 
-    public function test_everyone_and_here()
+    public function test_everyone_and_here(): void
     {
         $this->assertSame('@everyone', Mention::parse('everyone')['content']);
         $this->assertSame('@here', Mention::parse('here')['content']);
         $this->assertSame(['parse' => ['everyone']], Mention::parse('here')['allowed_mentions']);
     }
 
-    public function test_invalid_values_yield_null()
+    public function test_invalid_values_yield_null(): void
     {
         $this->assertNull(Mention::parse(null));
         $this->assertNull(Mention::parse(''));
         $this->assertNull(Mention::parse('role:abc'));
     }
 
-    public function test_channel_resolver()
+    public function test_channel_resolver(): void
     {
         $resolver = new ChannelResolver('111', ['billing' => '222']);
 

@@ -12,7 +12,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class DiscordAlertsTest extends TestCase
 {
-    public function test_send_posts_embed_with_bot_auth_to_default_channel()
+    public function test_send_posts_embed_with_bot_auth_to_default_channel(): void
     {
         $this->fakeDiscord();
 
@@ -29,7 +29,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertSame(1, preg_match('/^\d{2}:\d{2} \d{2}\.\d{2}\.\d{4}$/', $payload['embeds'][0]['footer']['text']));
     }
 
-    public function test_send_options()
+    public function test_send_options(): void
     {
         $this->fakeDiscord();
 
@@ -50,7 +50,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertTrue($payload['embeds'][0]['fields'][0]['inline']);
     }
 
-    public function test_noop_when_unconfigured()
+    public function test_noop_when_unconfigured(): void
     {
         $this->app['config']->set('discord-alerts.bot_token', '');
         $this->fakeDiscord();
@@ -60,7 +60,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertCount(0, $this->history);
     }
 
-    public function test_noop_when_channel_empty()
+    public function test_noop_when_channel_empty(): void
     {
         $this->app['config']->set('discord-alerts.channel_id', '');
         $this->fakeDiscord();
@@ -69,7 +69,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertCount(0, $this->history);
     }
 
-    public function test_never_throws_on_http_errors_or_timeouts()
+    public function test_never_throws_on_http_errors_or_timeouts(): void
     {
         $this->fakeDiscord([
             new Response(429),
@@ -84,7 +84,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertFalse(DiscordAlerts::send('d'));
     }
 
-    public function test_last_error_explains_the_failure()
+    public function test_last_error_explains_the_failure(): void
     {
         $this->fakeDiscord([
             new Response(403, [], '{"message": "Missing Access", "code": 50001}'),
@@ -102,7 +102,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertNull(DiscordAlerts::lastError());
     }
 
-    public function test_last_error_explains_missing_configuration()
+    public function test_last_error_explains_missing_configuration(): void
     {
         $this->app['config']->set('discord-alerts.bot_token', '');
         $this->fakeDiscord();
@@ -111,7 +111,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertStringContainsString('DISCORD_ALERTS_BOT_TOKEN', DiscordAlerts::lastError());
     }
 
-    public function test_report_sends_exception_embed_with_configured_mention()
+    public function test_report_sends_exception_embed_with_configured_mention(): void
     {
         $this->app['config']->set('discord-alerts.mention', 'role:999');
         $this->fakeDiscord();
@@ -124,7 +124,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertStringContainsString('**Message:** Boom', $payload['embeds'][0]['description']);
     }
 
-    public function test_ignored_exceptions_are_skipped()
+    public function test_ignored_exceptions_are_skipped(): void
     {
         $this->app['config']->set('discord-alerts.ignore', [\DomainException::class]);
         $this->fakeDiscord();
@@ -135,7 +135,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertCount(0, $this->history);
     }
 
-    public function test_dedupe_suppresses_second_identical_report()
+    public function test_dedupe_suppresses_second_identical_report(): void
     {
         $this->fakeDiscord();
 
@@ -149,7 +149,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertCount(1, $this->history);
     }
 
-    public function test_failed_delivery_does_not_suppress_the_next_report()
+    public function test_failed_delivery_does_not_suppress_the_next_report(): void
     {
         $this->fakeDiscord([new Response(500), new Response(200)]);
 
@@ -158,7 +158,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertTrue(DiscordAlerts::report($e));
     }
 
-    public function test_5xx_http_exceptions_are_reported_except_maintenance_503()
+    public function test_5xx_http_exceptions_are_reported_except_maintenance_503(): void
     {
         $this->fakeDiscord();
 
@@ -166,7 +166,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertFalse(DiscordAlerts::report(new \Symfony\Component\HttpKernel\Exception\HttpException(503, 'maintenance')));
     }
 
-    public function test_dedupe_ignores_dynamic_values_in_message()
+    public function test_dedupe_ignores_dynamic_values_in_message(): void
     {
         $this->fakeDiscord();
 
@@ -178,7 +178,14 @@ class DiscordAlertsTest extends TestCase
         $this->assertFalse(DiscordAlerts::report($make(2)));
     }
 
-    public function test_zero_field_values_are_kept()
+    public function test_send_with_unexpected_option_types_does_not_throw(): void
+    {
+        $this->fakeDiscord();
+
+        $this->assertFalse(DiscordAlerts::send('hi', ['title' => new \stdClass()]));
+    }
+
+    public function test_zero_field_values_are_kept(): void
     {
         $this->fakeDiscord();
 
@@ -187,7 +194,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertSame('0', $this->payload()['embeds'][0]['fields'][0]['value']);
     }
 
-    public function test_dedupe_can_be_disabled()
+    public function test_dedupe_can_be_disabled(): void
     {
         $this->app['config']->set('discord-alerts.dedupe.enabled', false);
         $this->fakeDiscord();
@@ -198,7 +205,7 @@ class DiscordAlertsTest extends TestCase
         $this->assertCount(2, $this->history);
     }
 
-    public function test_report_never_includes_secrets_from_the_request()
+    public function test_report_never_includes_secrets_from_the_request(): void
     {
         $this->fakeDiscord();
         $this->app->instance('request', \Illuminate\Http\Request::create('https://app.test/orders/5?token=abc', 'POST', ['password' => 'hunter2']));

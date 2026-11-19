@@ -8,7 +8,7 @@ class Mention
      * Turn 'role:123', 'user:123', '123' (role), 'everyone' or 'here' into message content
      * plus an allowed_mentions object that pings only that target. Returns null if invalid.
      */
-    public static function parse($value)
+    public static function parse(mixed $value): ?array
     {
         if (!is_string($value) && !is_int($value)) {
             return null;

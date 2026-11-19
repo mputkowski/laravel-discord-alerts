@@ -4,7 +4,7 @@ namespace mputkowski\DiscordAlerts\Formatting;
 
 class MessageFormatter
 {
-    const LEVELS = [
+    public const LEVELS = [
         'info' => ['color' => 0x3498DB, 'emoji' => ''],
         'warning' => ['color' => 0xE67E22, 'emoji' => '🟠'],
         'error' => ['color' => 0xE74C3C, 'emoji' => '🚨'],
@@ -13,11 +13,15 @@ class MessageFormatter
     /**
      * Build an embed from send() arguments.
      */
-    public function format($message, array $options, $footer)
+    public function format(string $message, array $options, string $footer): array
     {
-        $level = isset($options['level']) && isset(self::LEVELS[$options['level']]) ? $options['level'] : 'info';
+        $level = $options['level'] ?? 'info';
+        if (!is_string($level) || !isset(self::LEVELS[$level])) {
+            $level = 'info';
+        }
+
         $emoji = self::LEVELS[$level]['emoji'];
-        $title = isset($options['title']) ? trim((string) $options['title']) : '';
+        $title = trim((string) ($options['title'] ?? ''));
         $description = Truncator::escape($message);
 
         $embed = ['color' => self::LEVELS[$level]['color']];
@@ -31,8 +35,8 @@ class MessageFormatter
         $embed['description'] = $description;
 
         $fields = [];
-        foreach (isset($options['fields']) ? (array) $options['fields'] : [] as $name => $value) {
-            $name = Truncator::escape($name);
+        foreach ((array) ($options['fields'] ?? []) as $name => $value) {
+            $name = Truncator::escape((string) $name);
             $value = Truncator::escape($this->stringify($value));
 
             $fields[] = [
@@ -50,7 +54,7 @@ class MessageFormatter
         return Truncator::embed($embed);
     }
 
-    private function stringify($value)
+    private function stringify(mixed $value): string
     {
         if (is_bool($value)) {
             return $value ? 'true' : 'false';
@@ -58,7 +62,7 @@ class MessageFormatter
         if ($value === null) {
             return 'null';
         }
-        if (is_scalar($value) || (is_object($value) && method_exists($value, '__toString'))) {
+        if (is_scalar($value) || $value instanceof \Stringable) {
             return (string) $value;
         }
 

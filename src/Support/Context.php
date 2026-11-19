@@ -2,7 +2,7 @@
 
 namespace mputkowski\DiscordAlerts\Support;
 
-use Illuminate\Contracts\Container\Container;
+use Illuminate\Contracts\Foundation\Application;
 use mputkowski\DiscordAlerts\Formatting\Truncator;
 use Throwable;
 
@@ -12,23 +12,23 @@ use Throwable;
  */
 class Context
 {
-    private $app;
-    private $job;
-
-    public function __construct(Container $app, $job = null)
-    {
-        $this->app = $app;
-        $this->job = $job;
+    public function __construct(
+        private readonly Application $app,
+        private readonly ?object $job = null,
+    ) {
     }
 
-    public function lines($console = null)
+    /**
+     * @return string[]
+     */
+    public function lines(?bool $console = null): array
     {
-        $console = $console === null ? $this->app->runningInConsole() : $console;
+        $console ??= $this->app->runningInConsole();
 
         return $console ? $this->consoleLines() : $this->httpLines();
     }
 
-    private function httpLines()
+    private function httpLines(): array
     {
         if (!$this->app->bound('request')) {
             return [];
@@ -49,10 +49,10 @@ class Context
         return $lines;
     }
 
-    private function consoleLines()
+    private function consoleLines(): array
     {
         $lines = [];
-        $argv = isset($_SERVER['argv']) ? (array) $_SERVER['argv'] : [];
+        $argv = $_SERVER['argv'] ?? [];
 
         // Only the script and, for artisan, the command name: other arguments and options can carry secrets.
         if ($argv) {
@@ -82,7 +82,7 @@ class Context
         return $lines;
     }
 
-    private function userId()
+    private function userId(): ?string
     {
         try {
             if (!$this->app->bound('auth')) {

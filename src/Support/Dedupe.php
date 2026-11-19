@@ -7,17 +7,15 @@ use Throwable;
 
 class Dedupe
 {
-    private $cache;
-    private $enabled;
-    private $ttl;
-    private $store;
+    private readonly bool $enabled;
+    private readonly int $ttl;
+    private readonly ?string $store;
 
-    public function __construct(Factory $cache, array $config)
+    public function __construct(private readonly Factory $cache, array $config)
     {
-        $this->cache = $cache;
-        $this->enabled = !isset($config['enabled']) || $config['enabled'];
-        $this->ttl = isset($config['ttl']) ? (int) $config['ttl'] : 300;
-        $this->store = isset($config['store']) ? $config['store'] : null;
+        $this->enabled = (bool) ($config['enabled'] ?? true);
+        $this->ttl = (int) ($config['ttl'] ?? 300);
+        $this->store = $config['store'] ?? null;
     }
 
     /**
@@ -40,7 +38,7 @@ class Dedupe
     /**
      * Release the exception so a failed delivery does not suppress the next attempt.
      */
-    public function forget(Throwable $e)
+    public function forget(Throwable $e): void
     {
         try {
             $this->cache->store($this->store)->forget($this->key($e));
@@ -49,12 +47,12 @@ class Dedupe
         }
     }
 
-    private function key(Throwable $e)
+    private function key(Throwable $e): string
     {
         // Quoted values and numbers are dynamic (ids, bindings, timestamps); drop them so
         // the same failure with different data still dedupes.
         $message = preg_replace(['/\'[^\']*\'|"[^"]*"/', '/\d+/'], '?', $e->getMessage());
 
-        return 'discord-alerts:' . sha1(get_class($e) . '|' . $e->getFile() . '|' . $e->getLine() . '|' . $message);
+        return 'discord-alerts:' . sha1($e::class . '|' . $e->getFile() . '|' . $e->getLine() . '|' . $message);
     }
 }

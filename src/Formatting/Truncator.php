@@ -4,24 +4,22 @@ namespace mputkowski\DiscordAlerts\Formatting;
 
 class Truncator
 {
-    const CONTENT = 2000;
-    const TITLE = 256;
-    const DESCRIPTION = 4096;
-    const FOOTER = 2048;
-    const FIELD_NAME = 256;
-    const FIELD_VALUE = 1024;
-    const FIELDS = 25;
-    const EMBED_TOTAL = 6000;
+    public const CONTENT = 2000;
+    public const TITLE = 256;
+    public const DESCRIPTION = 4096;
+    public const FOOTER = 2048;
+    public const FIELD_NAME = 256;
+    public const FIELD_VALUE = 1024;
+    public const FIELDS = 25;
+    public const EMBED_TOTAL = 6000;
 
-    const MARKER = '… truncated';
+    public const MARKER = '… truncated';
 
     /**
      * Cut text to $max characters, appending a marker. An unclosed code fence is re-closed.
      */
-    public static function limit($text, $max)
+    public static function limit(string $text, int $max): string
     {
-        $text = (string) $text;
-
         if (mb_strlen($text) <= $max) {
             return $text;
         }
@@ -44,15 +42,15 @@ class Truncator
     /**
      * Escape Discord markdown characters in text that is not inside a code block.
      */
-    public static function escape($text)
+    public static function escape(string $text): string
     {
-        return preg_replace('/([\\\\*_`~|>])/', '\\\\$1', (string) $text);
+        return preg_replace('/([\\\\*_`~|>])/', '\\\\$1', $text);
     }
 
     /**
      * Enforce Discord's per-part and total embed limits.
      */
-    public static function embed(array $embed)
+    public static function embed(array $embed): array
     {
         if (isset($embed['title'])) {
             $embed['title'] = self::limit($embed['title'], self::TITLE);
@@ -90,13 +88,13 @@ class Truncator
         return $embed;
     }
 
-    private static function size(array $embed)
+    private static function size(array $embed): int
     {
-        $size = mb_strlen(isset($embed['title']) ? $embed['title'] : '')
-            + mb_strlen(isset($embed['description']) ? $embed['description'] : '')
-            + mb_strlen(isset($embed['footer']['text']) ? $embed['footer']['text'] : '');
+        $size = mb_strlen($embed['title'] ?? '')
+            + mb_strlen($embed['description'] ?? '')
+            + mb_strlen($embed['footer']['text'] ?? '');
 
-        foreach (isset($embed['fields']) ? $embed['fields'] : [] as $field) {
+        foreach ($embed['fields'] ?? [] as $field) {
             $size += mb_strlen($field['name']) + mb_strlen($field['value']);
         }
 

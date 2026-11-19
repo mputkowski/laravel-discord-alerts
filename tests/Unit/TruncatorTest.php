@@ -7,12 +7,12 @@ use PHPUnit\Framework\TestCase;
 
 class TruncatorTest extends TestCase
 {
-    public function test_short_text_is_untouched()
+    public function test_short_text_is_untouched(): void
     {
         $this->assertSame('hello', Truncator::limit('hello', 10));
     }
 
-    public function test_long_text_is_cut_with_marker_within_limit()
+    public function test_long_text_is_cut_with_marker_within_limit(): void
     {
         $result = Truncator::limit(str_repeat('a', 100), 50);
 
@@ -20,7 +20,7 @@ class TruncatorTest extends TestCase
         $this->assertStringEndsWith('… truncated', $result);
     }
 
-    public function test_open_code_fence_is_reclosed()
+    public function test_open_code_fence_is_reclosed(): void
     {
         $result = Truncator::limit("```php\n" . str_repeat('x', 200), 80);
 
@@ -28,12 +28,12 @@ class TruncatorTest extends TestCase
         $this->assertSame(0, substr_count($result, '```') % 2);
     }
 
-    public function test_markdown_is_escaped()
+    public function test_markdown_is_escaped(): void
     {
         $this->assertSame('\*a\* \_b\_ \`c\` \~d\~ \|e\| \>f', Truncator::escape('*a* _b_ `c` ~d~ |e| >f'));
     }
 
-    public function test_embed_limits_are_enforced()
+    public function test_embed_limits_are_enforced(): void
     {
         $fields = [];
         for ($i = 0; $i < 30; $i++) {

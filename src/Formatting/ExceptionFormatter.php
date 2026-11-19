@@ -6,27 +6,27 @@ use Throwable;
 
 class ExceptionFormatter
 {
-    const MESSAGE_LIMIT = 1000;
+    public const MESSAGE_LIMIT = 1000;
 
-    private $basePath;
-    private $frames;
+    private readonly string $basePath;
+    private readonly int $frames;
 
-    public function __construct($basePath, $frames = 5)
+    public function __construct(string $basePath, int $frames = 5)
     {
-        $this->basePath = rtrim((string) $basePath, '/\\');
-        $this->frames = max(0, (int) $frames);
+        $this->basePath = rtrim($basePath, '/\\');
+        $this->frames = max(0, $frames);
     }
 
     /**
      * @param string[] $contextLines pre-formatted markdown lines (request / console context)
      */
-    public function format(Throwable $e, $footer, array $contextLines = [])
+    public function format(Throwable $e, string $footer, array $contextLines = []): array
     {
-        $class = explode("\0", get_class($e))[0];
+        $class = explode("\0", $e::class)[0];
         $short = class_basename($class);
 
         $lines = [];
-        if (strpos($class, '\\') !== false) {
+        if (str_contains($class, '\\')) {
             $lines[] = '**Class:** `' . $class . '`';
         }
 
@@ -52,7 +52,7 @@ class ExceptionFormatter
     /**
      * Best-effort scrub of values that commonly end up in exception messages.
      */
-    private function redact($message)
+    private function redact(string $message): string
     {
         // Illuminate QueryException appends the SQL with bound values.
         $message = preg_replace('/\s*\((?:Connection: [^,)]*, )?SQL: .*$/s', ' (SQL redacted)', $message);
@@ -64,14 +64,14 @@ class ExceptionFormatter
         return preg_replace('/\b(Bearer\s+)[A-Za-z0-9._~+\/=-]+/i', '$1[redacted]', $message);
     }
 
-    private function trace(Throwable $e)
+    private function trace(Throwable $e): string
     {
         $frames = $e->getTrace();
         $out = [];
 
         foreach (array_slice($frames, 0, $this->frames) as $i => $frame) {
             $call = (isset($frame['class']) ? $frame['class'] . $frame['type'] : '') . $frame['function'] . '()';
-            $where = isset($frame['file']) ? $this->relative($frame['file']) . ':' . (isset($frame['line']) ? $frame['line'] : '?') : '[internal function]';
+            $where = isset($frame['file']) ? $this->relative($frame['file']) . ':' . ($frame['line'] ?? '?') : '[internal function]';
             $out[] = str_replace('```', "'''", '#' . $i . ' ' . $where . ' ' . $call);
         }
 
@@ -82,9 +82,9 @@ class ExceptionFormatter
         return implode("\n", $out);
     }
 
-    private function relative($path)
+    private function relative(string $path): string
     {
-        if ($this->basePath !== '' && strpos($path, $this->basePath . DIRECTORY_SEPARATOR) === 0) {
+        if ($this->basePath !== '' && str_starts_with($path, $this->basePath . DIRECTORY_SEPARATOR)) {
             return substr($path, strlen($this->basePath) + 1);
         }
 
